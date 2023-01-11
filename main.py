@@ -58,6 +58,7 @@ class Application:
         self.pid = os.getpid()
         self.process = psutil.Process(self.pid)
         print(f"Starting app... (PID {self.pid})")
+        self.process.cpu_percent()  # to avoid first measurement being 0
         self.process_stats_timer = 0
         self.is_running = False
 
