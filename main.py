@@ -5,6 +5,7 @@ import numpy as np
 import os
 import psutil
 import sys
+import timeit
 
 
 from object3d import Cube
@@ -74,7 +75,7 @@ class Application:
             if self.process_stats_timer > 1000:
                 print(f"CPU: {self.process.cpu_percent()}%\t"
                       f"RAM: {self.process.memory_info().rss / float(2**20):.2f} MB\t"
-                      f"FPS: {self.clock.get_fps():.2f}")
+                      f"FPS: {int(self.clock.get_fps())}")
                 self.process_stats_timer = 0
 
             for event in pygame.event.get():
@@ -113,4 +114,9 @@ class Application:
 
 
 if __name__ == '__main__':
+    # cast vs format time comparison
+    # cast_time = timeit.timeit("print(f'{int(112.15)}')")
+    # format_time = timeit.timeit("print(f'{112.15:.0f}')")
+    # print(f"Cast time: {cast_time}\tFormat time: {format_time}")
+    # print(f"Cast is {format_time / cast_time:.2f} times faster than format")  # 5% faster to cast
     Application().run()
