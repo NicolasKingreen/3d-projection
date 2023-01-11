@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Object3D:
-    def __init__(self, center, scale, angle=0):
+    def __init__(self, center, scale, angle):
         self.center = center
         self.scale = scale
         self.angle = angle
@@ -11,8 +11,8 @@ class Object3D:
 
 
 class Cube(Object3D):
-    def __init__(self, center, scale):
-        super().__init__(center, scale)
+    def __init__(self, center, scale, angle=0):
+        super().__init__(center, scale, angle)
         self.vertices = np.array([
             # front
             [-0.5, -0.5, 0.5],

@@ -4,6 +4,7 @@ from pygame.locals import *
 import numpy as np
 import os
 import psutil
+import random
 import sys
 import timeit
 
@@ -11,7 +12,7 @@ import timeit
 from object3d import Cube
 
 
-# TODO: better take out stuff out of main loop and cube (e.g. in renderer)
+# TODO: better take out stuff out of main loop and cube (e.g. in renderer), add depth (z coordinate)
 
 
 WIN_SIZE = 1280, 720
@@ -61,8 +62,14 @@ class Application:
         self.is_running = False
 
         # project specific stuff
-        self.cube = Cube((WIN_WIDTH / 2, WIN_HEIGHT / 2, 0), 250)
-        print(f"One cube is about {sys.getsizeof(self.cube)} bytes in memory")
+        # self.cube = Cube((WIN_WIDTH / 2, WIN_HEIGHT / 2, 0), 250)
+        # print(f"One cube is about {sys.getsizeof(self.cube)} bytes in memory")
+
+        self.cubes = [Cube((random.uniform(0, WIN_WIDTH),                   # x
+                            random.uniform(0, WIN_HEIGHT),                  # y
+                            0),                                             # z
+                           random.uniform(25, 250),                         # scale
+                           random.uniform(0, 359)) for _ in range(100)]     # angle
 
     def run(self):
         self.is_running = True
@@ -86,27 +93,32 @@ class Application:
                         self.stop()
 
             # updates
-            self.cube.angle += 0.25 * np.pi * frame_time_s
+            for cube in self.cubes:
+                cube.angle += 0.25 * np.pi * frame_time_s
 
             # projected vertices are temporal
-            projected_vertices = self.cube.vertices * self.cube.scale  # could be in init to save some calculations
-            projected_vertices = projected_vertices.dot(get_rotation_x_matrix(self.cube.angle))
-            projected_vertices = projected_vertices.dot(get_rotation_y_matrix(self.cube.angle))
-            projected_vertices = projected_vertices.dot(get_rotation_z_matrix(self.cube.angle))
-            projected_vertices += self.cube.center
-            projected_vertices = projected_vertices.dot(PROJECTION_MATRIX)[:, :2]
+            projected_vertices_list = []
+            for cube in self.cubes:
+                projected_vertices = cube.vertices * cube.scale  # could be in init to save some calculations
+                projected_vertices = projected_vertices.dot(get_rotation_x_matrix(cube.angle))
+                projected_vertices = projected_vertices.dot(get_rotation_y_matrix(cube.angle))
+                projected_vertices = projected_vertices.dot(get_rotation_z_matrix(cube.angle))
+                projected_vertices += cube.center
+                projected_vertices = projected_vertices.dot(PROJECTION_MATRIX)[:, :2]
+                projected_vertices_list.append(projected_vertices)
             # print(self.projected_vertices)
 
             # drawings
             self.screen.fill((255, 255, 255))
             # connections
-            for connection in self.cube.edges:
-                pygame.draw.line(self.screen, (0, 0, 0),
-                                 projected_vertices[connection[0]],
-                                 projected_vertices[connection[1]])
-            # vertices
-            # for vertex in self.projected_vertices:
-            #     pygame.draw.circle(self.screen, (0, 0, 0), (int(vertex[0]), int(vertex[1])), 1)
+            for i, cube in enumerate(self.cubes):
+                for connection in cube.edges:
+                    pygame.draw.line(self.screen, (0, 0, 0),
+                                     projected_vertices_list[i][connection[0]],
+                                     projected_vertices_list[i][connection[1]])
+                # vertices
+                # for vertex in self.projected_vertices:
+                #     pygame.draw.circle(self.screen, (0, 0, 0), (int(vertex[0]), int(vertex[1])), 1)
             pygame.display.update()
 
     def stop(self):
